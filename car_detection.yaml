@@ -1,0 +1,18 @@
+
+path: /home/geraaaxx/projects/mlops_labs2_3/kaggle/working/data
+train: images/train
+val: images/val
+
+nc: 1
+names: ['car']
+augmentations:
+  mosaic: 1.0           # Mosaic probability
+  mixup: 0.2            # Mixup probability
+  flipud: 0.0           # Vertical flip probability
+  fliplr: 0.5           # Horizontal flip probability
+  scale: 0.5            # Scale range
+  shear: 0.0            # Shear angle
+  perspective: 0.0      # Perspective transformation
+  hsv_h: 0.015          # Hue augmentation
+  hsv_s: 0.7            # Saturation augmentation
+  hsv_v: 0.4            # Brightness augmentation
