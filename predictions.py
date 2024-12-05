@@ -1,38 +1,27 @@
-from __future__ import annotations
 import bentoml
-from bentoml.io import Image, JSON
-import cv2
+from bentoml.io import Image
 import numpy as np
-
+import cv2
 from ultralytics import YOLO
 
-# Экземпляр BentoML сервиса
-@bentoml.service(
-    resources={"cpu": "2", "nvidia.com/gpu": "1"},  # Указать GPU, если доступен
-    traffic={"timeout": 10},
-)
+@bentoml.service()
 class CarDetectionService:
-    def __init__(self) -> None:
-        # Загрузка YOLO-модели
-        self.model = YOLO("")  # Укажите путь к модели
+    def __init__(self):
+        self.model = YOLO("models/best.onnx")
 
-    @bentoml.api(input=Image(), output=Image())
-    def detect_cars(self, image: np.ndarray) -> np.ndarray:
-        # Предобработка изображения
-        input_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Преобразуем в RGB
-        results = self.model.predict(input_image)  # Инференс с использованием YOLO
+    def predict(self, image: np.ndarray):
+        results = self.model.predict(image)
+        return results
 
-        # Постобработка: рендерим детекцию на изображении
-        output_image = self.draw_detections(image, results)
-        return output_image
-
-    def draw_detections(self, image: np.ndarray, detections) -> np.ndarray:
-        """
-        Рисуем детекции на изображении
-        """
+    def draw_detections(self, image: np.ndarray, detections: list) -> np.ndarray:
         for det in detections:
-            x1, y1, x2, y2, conf, cls = det  # координаты, вероятность, класс
+            x1, y1, x2, y2, conf, cls = det
             label = f"Car: {conf:.2f}"
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         return image
+
+    @bentoml.api(input=Image(), output=Image())
+    def detect(self, image: np.ndarray) -> np.ndarray:
+        results = self.predict(image)
+        return self.draw_detections(image, results)
